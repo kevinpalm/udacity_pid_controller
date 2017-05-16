@@ -16,6 +16,12 @@ public:
   double Kp;
   double Ki;
   double Kd;
+  
+  /*
+  * CTE History
+  */
+  double prior_cte;
+  double cumulative_cte;
 
   /*
   * Constructor
@@ -36,6 +42,11 @@ public:
   * Update the PID error variables given cross track error.
   */
   void UpdateError(double cte);
+  
+  /*
+  * Get an output value from the PID controller given a cross track error
+  */
+  double OutputValue(double cte);
 
   /*
   * Calculate the total PID error.
