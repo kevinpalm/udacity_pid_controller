@@ -37,7 +37,7 @@ int main()
   PID speed_pid;
 
   // Initialize the pid variable.
-  pid.Init(00.2, 0, -1.55, -1.0, 1.0);
+  pid.Init(0.2, 0, -1.55, -1.0, 1.0);
   speed_pid.Init(0.135, 0, -0.759905, 0.0, 1.0);
   
   /*********************************************************************
@@ -102,7 +102,7 @@ int main()
 			  
 			// Increment the timestamp and add the round's score to the round average
 			timestamp ++;
-			avg_score += (fabs(cte)/fmax(speed, 0.001))/timesteps;
+			avg_score += (fabs(cte)/fmax(speed/100, 0.001))/timesteps;
 			  
 			// Check if we've done enough timestamps
 			if ((timestamp >= timesteps) || ((fabs(cte) > 5.0) && (timestamp>30))) {

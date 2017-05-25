@@ -3,6 +3,40 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
+## Discussion
+
+This is a C++ PID controller implimentation for Udacity's lake driving course simulation. There are two PID controllers used in the car - one to control steering angle and one to control throttle.
+
+![See PID drive][./pid_car.ogv]
+
+### Steering
+The PID controlling steering angle ended up with cross track error as its input and the following tunings:
+
+* P = 0.2 (A relatively small positive coeficient on the proportional component correction provides sufficient "quick reaction" when the car deviates from the center of the lane.)
+* I = 0.0 (With no wheel misalignment, there is no constant estimation error that needs to be compensated for, so the integral component is zero.)
+* D = -1.55 (The relatively large negative coeficient for the derivative component mitigates some of the overshooting when the car is returning towards the center of the lane.)
+
+### Throttle
+The PID controlling throttle ended up with the absolute value of steering angle as its input.
+
+* P = 0.135 (A small positive coeficient on the proportional component causes the car to start moving.)
+* I = 0.0 (Nothing to correct for using the integral component.)
+* D = -0.759905 (A relatively large negative component on the derivative component causes the car to accelerate most sharply when the car is tending towards a steering angle of zero... i.e. straightning out.)
+
+### Tuning process
+This project was tuned using a combination of twiddle tuning and manually setting values. Twiddle tuning was helpful but seems severely limited because:
+
+* It requires a suitable scoring formula. In this case, scoring needed to be some middle ground balancing CTE and speed.
+* In this specific project it seemed to like finding local minimums. I had my tuner stop a few time on some very odd driving.
+* Stopping a simulation round early because the car fell off the track created a challenge in scoring.
+
+Ultimately, I ended up tuning on the formula "fabs(cte)/fmax(speed/100, 0.001)", which rewards driving in the center of the lane at faster speeds and avoids division by zero. I ended up putting in initial values manually a few times between separate twiddle tuning sessions to experiment with escaping local minimum tunings. And for ending rounds earlier, I simply had the simulation score assume worst case for the remainder of the timesteps.
+
+### Quirks
+I ended up applying a sigmoid transform on both my PID outputs. I modified the PID init functions to also expect a min and max output range, which the logistic output is then translated and scaled to. I think the output may slightly more fluid outputs.
+
+Otherwise, this project isn't really structured well for reusability, but the code gets it done for the sake of this project. Overall, it's been a good learning experience and PID controllers are simple and fun, albiet maybe not the most easily smooth of drivers.
+
 ## Dependencies
 
 * cmake >= 3.5
@@ -26,59 +60,3 @@ Self-Driving Car Engineer Nanodegree Program
 2. Make a build directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
 4. Run it: `./pid`. 
-
-## Editor Settings
-
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
-
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
-
-## Code Style
-
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
-
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/e8235395-22dd-4b87-88e0-d108c5e5bbf4/concepts/6a4d8d42-6a04-4aa6-b284-1697c0fd6562)
-for instructions and the project rubric.
-
-## Hints!
-
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
-
-## Call for IDE Profiles Pull Requests
-
-Help your fellow students!
-
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
-
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
