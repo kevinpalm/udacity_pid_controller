@@ -7,7 +7,7 @@ Self-Driving Car Engineer Nanodegree Program
 
 This is a C++ PID controller implimentation for Udacity's lake driving course simulation. There are two PID controllers used in the car - one to control steering angle and one to control throttle.
 
-![See PID drive][./pid_car.ogv]
+[Here's a video.](./pid_car.ogv)
 
 ### Steering
 The PID controlling steering angle ended up with cross track error as its input and the following tunings:
