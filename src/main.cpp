@@ -3,6 +3,7 @@
 #include "json.hpp"
 #include "PID.h"
 #include <math.h>
+#include <random>
 
 // for convenience
 using json = nlohmann::json;
@@ -34,19 +35,19 @@ int main()
 
   PID pid;
   PID speed_pid;
-  
+
   // Initialize the pid variable.
-  pid.Init(-1.011, -1.0, 1.58459);
-  speed_pid.Init(-2.1, -1.0, 1.0);
+  pid.Init(00.2, 0, -1.55, -1.0, 1.0);
+  speed_pid.Init(0.135, 0, -0.759905, 0.0, 1.0);
   
   /*********************************************************************
    * Twiddle Tuning Block 1 Start - Parameters
    ********************************************************************/
   // Switch the true/false here to decide if we're twiddle tuning
-  bool twiddle_tuning = true;
+  bool twiddle_tuning = false;
   int timestamp = 0;
-  int timesteps = 100;
-  double tolerance = 0.01;
+  int timesteps = 2000;
+  double tolerance = 0.0001;
   std::vector<double*> params {&pid.Kp, &pid.Ki, &pid.Kd, &speed_pid.Kp, &speed_pid.Ki, &speed_pid.Kd};
   std::vector<double*> param_errors {&pid.p_error, &pid.i_error, &pid.d_error, &speed_pid.p_error, &speed_pid.i_error, &speed_pid.d_error};
   std::vector<double> best_tunings(6);
@@ -77,11 +78,11 @@ int main()
           double steer_value;
 
 		  // Calculate the steering and throttle
-          double throttle = speed_pid.OutputValue(fmax(0.0001, fabs(cte) * fabs(cte))/fmax(0.0001, speed/100));
-          steer_value = pid.OutputValue(fmax(0.0001, fabs(cte) * fabs(cte))/fmax(0.0001, speed/100));
+          double throttle = speed_pid.OutputValue(fabs(angle));
+          steer_value = pid.OutputValue(cte);
           
           // DEBUG
-          //std::cout << "CTE: " << cte << " Steering Value: " << steer_value << " Speed: " << speed << std::endl;
+          std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
@@ -101,10 +102,16 @@ int main()
 			  
 			// Increment the timestamp and add the round's score to the round average
 			timestamp ++;
-			avg_score += (fmax(0.0001, fabs(cte) * fabs(cte))/fmax(0.0001, speed/100))/timesteps; // scoring on cte divided by scaled speed clipped to avoid div 0 and negatives
+			avg_score += (fabs(cte)/fmax(speed, 0.001))/timesteps;
 			  
 			// Check if we've done enough timestamps
-			if (timestamp >= timesteps) {
+			if ((timestamp >= timesteps) || ((fabs(cte) > 5.0) && (timestamp>30))) {
+			  
+			  // Too far off course, just restart now
+			  if (fabs(cte) > 5.0) {
+				  avg_score = (5.0/0.001)*timesteps/timestamp*(timesteps-timestamp);
+			  }
+			  
 				
               //Check if this was the first round
               if (first_round) {
@@ -164,6 +171,7 @@ int main()
 			     if (plus_minus_index == 0) {
 					 param_index = (param_index + 1) % params.size();
 					 *params[param_index] += *param_errors[param_index];
+					 
 				 }
 				 std::cout << "Starting new round with tunings of:" << std::endl;
 				 for (int i=0; i<params.size(); i++) {

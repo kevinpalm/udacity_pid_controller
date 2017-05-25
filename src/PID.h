@@ -18,6 +18,12 @@ public:
   double Kd;
   
   /*
+   * Output
+   */
+   double minrange;
+   double maxrange;
+  
+  /*
   * CTE History
   */
   double prior_cte;
@@ -36,7 +42,7 @@ public:
   /*
   * Initialize PID.
   */
-  void Init(double Kp, double Ki, double Kd);
+  void Init(double Kp, double Ki, double Kd, double min_range, double max_range);
 
   /*
   * Update the PID error variables given cross track error.
